@@ -1,5 +1,12 @@
 #include <cstdio>
+#include <net/if.h>
+#include <bits/ioctls.h>
+#include <sys/ioctl.h>
+#include <stdexcept>
+#include <unistd.h>
 #include "util.h"
+
+using namespace std;
 
 const char *strnstr(const char *haystack, const char *needle, size_t len) {
     size_t needle_len = strlen(needle);
@@ -42,4 +49,20 @@ void dump(const uint8_t *buf, int size) {
         printf("%02X ", buf[i]);
     }
     printf("\n");
+}
+
+void get_dev_mac(const char *dev, uint8_t *dst) {
+    ifreq ifr{};
+
+    int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
+
+    strncpy(ifr.ifr_name, dev, IF_NAMESIZE - 1);
+
+    if (ioctl(fd, SIOCGIFHWADDR, &ifr) != 0) {
+        close(fd);
+        throw runtime_error("cannot get device mac address");
+    }
+
+    memcpy(dst, ifr.ifr_addr.sa_data, 6);
+    close(fd);
 }

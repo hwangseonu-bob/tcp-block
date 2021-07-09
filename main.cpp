@@ -1,15 +1,7 @@
 #include <iostream>
-
 #include <netinet/ether.h>
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
-#include <netinet/in.h>
-#include <net/if.h>
-
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-
-#include <unistd.h>
 #include <pcap.h>
 
 #include "packet.h"
@@ -21,22 +13,6 @@ using namespace std;
 
 char *pattern;
 uint8_t my_mac[6];
-
-void get_dev_mac(const char *dev, uint8_t *dst) {
-    ifreq ifr{};
-
-    int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
-
-    strncpy(ifr.ifr_name, dev, IF_NAMESIZE - 1);
-
-    if (ioctl(fd, SIOCGIFHWADDR, &ifr) != 0) {
-        close(fd);
-        throw runtime_error("cannot get device mac address");
-    }
-
-    memcpy(dst, ifr.ifr_addr.sa_data, 6);
-    close(fd);
-}
 
 void handle_packet(pcap_t *handle, const pcap_pkthdr *header, const uint8_t *packet) {
     const uint8_t *ptr = packet;
